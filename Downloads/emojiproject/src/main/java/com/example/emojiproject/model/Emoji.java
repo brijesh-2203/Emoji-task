@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 
-@Document(indexName = "emojis")
 public class Emoji {
 
     @JsonProperty
@@ -97,5 +96,4 @@ public class Emoji {
         return OBJECT_MAPPER.convertValue(account, new TypeReference<Map<String, Object>>() {
         });
     }
-    //    private String base64Image;
 }

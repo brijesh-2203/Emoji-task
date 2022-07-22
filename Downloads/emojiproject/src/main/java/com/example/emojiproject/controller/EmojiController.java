@@ -3,8 +3,6 @@ package com.example.emojiproject.controller;
 import com.example.emojiproject.model.Emoji;
 import com.example.emojiproject.service.QueryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -18,10 +16,10 @@ public class EmojiController {
     private QueryService service;
 
 
-    @GetMapping("/{indexName}/{search}")
-    public List<String> getEmoji(@PathVariable String indexName,@PathVariable String search)
+    @GetMapping("/{indexName}/{searchText}")
+    public List<String> getEmojis(@PathVariable String indexName,@PathVariable String searchText)
     {
-        List<Emoji> emojis = service.getemo(search,indexName);
+        List<Emoji> emojis = service.getEmojis(searchText,indexName);
         List<String> emoji = new ArrayList<>();
 
         if(emojis.isEmpty())
@@ -37,9 +35,9 @@ public class EmojiController {
     }
 
     @GetMapping("/{indexName}")
-    public List<String> getEmojis(@PathVariable String indexName)
+    public List<String> getAllEmojis(@PathVariable String indexName)
     {
-        List<Emoji> emojis = service.getemojis(indexName);
+        List<Emoji> emojis = service.getAllEmojis(indexName);
         List<String> emoji = new ArrayList<>();
 
         for (Emoji emoticon : emojis) {
@@ -51,11 +49,11 @@ public class EmojiController {
     @PostMapping("/add/{indexName}")
     public String addEmojis(@PathVariable String indexName) throws IOException {
 
-       if(service.getindices(indexName))
+       if(service.getIndices(indexName))
        {
            return "Index Name already exist";
        }
-        service.writeAccounts(indexName);
+        service.createEmojiIndex(indexName);
         return "added";
     }
     @DeleteMapping("/delete/{indexName}")

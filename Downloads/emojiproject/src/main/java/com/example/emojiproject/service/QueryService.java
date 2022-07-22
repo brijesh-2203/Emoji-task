@@ -15,7 +15,6 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -39,14 +38,14 @@ public class QueryService {
     private RestHighLevelClient restHighLevelClient;
 
 
-    public List<Emoji> getemo(String data,String indexName)
+    public List<Emoji> getEmojis(String searchText,String indexName)
     {
-        Map<String,Float> fields1 = new HashMap<String,Float>();
-        fields1.put("description",1f);
-        fields1.put("aliases",3f);
-        fields1.put("tags",4f);
+        Map<String,Float> fields = new HashMap<String,Float>();
+        fields.put("description",1f);
+        fields.put("aliases",2f);
+        fields.put("tags",3f);
         Query searchQuery = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.queryStringQuery(data+"*").fields(fields1))
+                .withQuery(QueryBuilders.queryStringQuery(searchText+"*").fields(fields))
                 .build();
 
         SearchHits<Emoji> output =
@@ -55,14 +54,13 @@ public class QueryService {
         return output.get().map(SearchHit::getContent).collect(Collectors.toList());
     }
 
-    public List<Emoji> readAccounts() throws IOException {
-        final File file = new File("/home/root322/Downloads/springemoji.json");
-        final Emoji[] emojis = new ObjectMapper().readValue(file, Emoji[].class);
-        return Arrays.asList(emojis);
-    }
-    public BulkResponse writeAccounts(String indexName) throws IOException {
+    public BulkResponse createEmojiIndex(String indexName) throws IOException {
+
         final var bulkRequest = new BulkRequest();
-        List<Emoji> emojis = readAccounts();
+        final File file = new File("/home/root322/Downloads/springemoji.json");
+        final Emoji[] emojisFromFile = new ObjectMapper().readValue(file, Emoji[].class);
+
+        List<Emoji> emojis = Arrays.asList(emojisFromFile);
         emojis.forEach(account -> {
             final var indexRequest = new IndexRequest(indexName);
             indexRequest.source(Emoji.getAsMap(account));
@@ -77,7 +75,7 @@ public class QueryService {
     }
 
 
-    public List<Emoji> getemojis(String indexName) {
+    public List<Emoji> getAllEmojis(String indexName) {
         Query searchQuery2 = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.matchAllQuery()).build();
 
@@ -86,7 +84,7 @@ public class QueryService {
         return output2.get().map(SearchHit::getContent).collect(Collectors.toList());
     }
 
-    public boolean getindices(String indexName) throws IOException {
+    public boolean getIndices(String indexName) throws IOException {
 
         GetIndexRequest request = new GetIndexRequest("*");
         GetIndexResponse response = restHighLevelClient.indices().get(request, RequestOptions.DEFAULT);
@@ -95,11 +93,9 @@ public class QueryService {
         {
             if(s.contains(indexName))
             {
-                System.out.println("data:"+s);
                 return true;
             }
         }
-        System.out.println(indices);
         return false;
     }
 
